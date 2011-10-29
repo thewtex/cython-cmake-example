@@ -58,7 +58,7 @@ set( CYTHON_CXX_EXTENSION "cxx" )
 set( CYTHON_C_EXTENSION "c" )
 
 # Create a *.c or *.cxx file from a *.pyx file.
-macro( COMPILE_PYX_FILE pyx_file )
+function( COMPILE_PYX_FILE pyx_file generated_file )
   get_filename_component( pyx_file_basename "${pyx_file}" NAME_WE )
 
   set( pyx_file_is_cxx FALSE )
@@ -95,15 +95,17 @@ macro( COMPILE_PYX_FILE pyx_file )
     set( no_docstrings_arg "" )
   endif()
 
+  set( _generated_file "${pyx_file_basename}.${extension}" )
+  set( ${generated_file} ${_generated_file} PARENT_SCOPE )
   add_custom_command( OUTPUT ${output_file}
     COMMAND ${CYTHON_EXECUTABLE}
     ARGS ${pyx_location} ${cxx_arg} ${include_directory_arg}
     ${annotate_arg} ${no_docstrings_arg} ${CYTHON_FLAGS} 
-    --output-file  ${pyx_file_basename}.${extension}
+    --output-file  ${_generated_file}
     DEPENDS ${pyx_file}
     COMMENT ${comment}
     )
-endmacro()
+endfunction()
 
 # CYTHON_ADD_MODULE( <name> src1 src2 ... srcN )
 # Build the Cython Python module.
@@ -111,9 +113,7 @@ function( CYTHON_ADD_MODULE _name )
   set( module_sources "" )
   foreach( _file ${ARGN} )
     if( ${_file} MATCHES ".*\\.pyx$" )
-      compile_pyx_file( ${_file} )
-      get_filename_component( generated_file "${_file}" NAME_WE )
-      set( generated_file "${generated_file}.${CYTHON_CXX_EXTENSION}" )
+      compile_pyx_file( ${_file} generated_file )
       set( module_sources ${module_sources} ${generated_file} )
     else()
       set( module_sources ${module_sources} ${_file} )
