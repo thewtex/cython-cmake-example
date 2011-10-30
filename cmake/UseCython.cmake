@@ -79,10 +79,12 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
   if( ${property_is_cxx} )
     set( cxx_arg "--cplus" )
     set( extension ${CYTHON_CXX_EXTENSION} )
+    set( pyx_lang "CXX" )
     set( comment "Compiling Cython CXX source for ${pyx_file}..." )
   else()
     set( cxx_arg "" )
     set( extension ${CYTHON_C_EXTENSION} )
+    set( pyx_lang "C" )
     set( comment "Compiling Cython C source for ${pyx_file}..." )
   endif()
   set( _generated_file "${pyx_file_basename}.${extension}" )
@@ -117,8 +119,21 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     foreach( pxd ${pxds_to_check} )
       list( APPEND pxds_checked "${pxd}" )
       list( REMOVE_ITEM pxds_to_check "${pxd}" )
+
       # check for C header dependencies
-      # todo
+      file( STRINGS ${pxd} extern_from_statements
+        REGEX "cdef[ ]+extern[ ]+from.*$" )
+      foreach( statement ${extern_from_statements} )
+        # Had trouble getting the quote in the regex
+        string( REGEX REPLACE "cdef[ ]+extern[ ]+from[ ]+[\"]([^\"]+)[\"].*" "\\1" header "${statement}" )
+        find_file( header_location ${header} PATHS ${cmake_include_directories} )
+        if( header_location )
+          list( FIND c_header_dependencies "${header_location}" header_idx )
+          if( ${header_idx} LESS 0 )
+            list( APPEND c_header_dependencies "${header_location}" )
+          endif()
+        endif()
+      endforeach()
 
       # check for pxd dependencies
 
@@ -127,11 +142,9 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
       file( STRINGS ${pxd} cimport_statements REGEX cimport )
       foreach( statement ${cimport_statements} )
         if( ${statement} MATCHES from )
-          string( REGEX REPLACE "from[ ]+([^ ]+)" "\\1" moduletmp "${statement}" )
-          # Why does this not work straight-away???
-          string( REGEX MATCH "[^ ]+" module "${moduletmp}" ) 
+          string( REGEX REPLACE "from[ ]+([^ ]+).*" "\\1" module "${statement}" )
         else()
-          string( REGEX REPLACE "cimport[ ]+([^ ]+)" "\\1" module "${statement}" )
+          string( REGEX REPLACE "cimport[ ]+([^ ]+).*" "\\1" module "${statement}" )
         endif()
         list( APPEND module_dependencies ${module} )
       endforeach()
@@ -150,8 +163,8 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
             endif() # if it is not already going to be checked
           endif() # if it has not already been checked
         endif() # if pxd file can be found
-      endforeach()
-    endforeach()
+      endforeach() # for each module dependency discovered
+    endforeach() # for each pxd file to check
     list( LENGTH pxds_to_check number_pxds_to_check )
   endwhile()
 
@@ -174,7 +187,8 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     ARGS ${pyx_location} ${cxx_arg} ${include_directory_arg}
     ${annotate_arg} ${no_docstrings_arg} ${CYTHON_FLAGS} 
     --output-file  ${_generated_file}
-    DEPENDS ${pyx_file} ${pxd_dependencies} ${c_header_dependencies}
+    DEPENDS ${pyx_file} ${pxd_dependencies}
+    IMPLICIT_DEPENDS ${pyx_lang} ${c_header_dependencies}
     COMMENT ${comment}
     )
 endfunction()
