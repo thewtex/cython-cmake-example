@@ -22,13 +22,3 @@ class RectangleTest(TestCase):
         self.test_getLength()
         self.test_getHeight()
         self.test_getArea()
-
-    def test_defaults(self):
-        rectangle = Rectangle(8, 9)
-        assert_equal(rectangle.getLength(), 4)
-        assert_equal(rectangle.getHeight(), 3)
-        assert_equal(rectangle.getArea(), 12)
-
-    def test_description(self):
-        print("Printing rectangle description:")
-        self.rectangle.describe()

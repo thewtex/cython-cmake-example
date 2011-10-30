@@ -7,4 +7,3 @@ cdef class Rectangle:
     cpdef getHeight(self)
     cpdef getArea(self)
     cpdef move(self, dx, dy)
-    cpdef describe(self)

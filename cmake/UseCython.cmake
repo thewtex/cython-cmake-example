@@ -75,7 +75,7 @@ function( compile_pyx _name generated_file )
   set( cxx_arg "" )
   set( extension ${CYTHON_C_EXTENSION} )
   set( pyx_lang "C" )
-  set( comment "Compiling Cython C source for ${pyx_file}..." )
+  set( comment "Compiling Cython C source for ${_name}..." )
 
   set( cython_include_directories "" )
   set( pxd_dependencies "" )
@@ -91,7 +91,7 @@ function( compile_pyx _name generated_file )
       set( cxx_arg "--cplus" )
       set( extension ${CYTHON_CXX_EXTENSION} )
       set( pyx_lang "CXX" )
-      set( comment "Compiling Cython CXX source for ${pyx_file}..." )
+      set( comment "Compiling Cython CXX source for ${_name}..." )
     endif()
 
     # Get the include directories.
@@ -120,7 +120,7 @@ function( compile_pyx _name generated_file )
         list( REMOVE_ITEM pxds_to_check "${pxd}" )
 
         # check for C header dependencies
-        file( STRINGS ${pxd} extern_from_statements
+        file( STRINGS "${pxd}" extern_from_statements
           REGEX "cdef[ ]+extern[ ]+from.*$" )
         foreach( statement ${extern_from_statements} )
           # Had trouble getting the quote in the regex
@@ -138,7 +138,7 @@ function( compile_pyx _name generated_file )
 
         # Look for cimport statements.
         set( module_dependencies "" )
-        file( STRINGS ${pxd} cimport_statements REGEX cimport )
+        file( STRINGS "${pxd}" cimport_statements REGEX cimport )
         foreach( statement ${cimport_statements} )
           if( ${statement} MATCHES from )
             string( REGEX REPLACE "from[ ]+([^ ]+).*" "\\1" module "${statement}" )
