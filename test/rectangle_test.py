@@ -22,4 +22,3 @@ class RectangleTest(TestCase):
         self.test_getLength()
         self.test_getHeight()
         self.test_getArea()
-

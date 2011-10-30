@@ -18,11 +18,21 @@
 # *.c, *.cxx, etc.  A CMake target is created with name <module_name>.  This can
 # be used for target_link_libraries(), etc.
 #
+# The sample paths set with the CMake include_directories() command will be used
+# for include directories to search for *.pxd when running the Cython complire.
+#
 # Cache variables that effect the behavior include:
 #
 #  CYTHON_ANNOTATE
 #  CYTHON_NO_DOCSTRINGS
 #  CYTHON_FLAGS
+#
+# Source file properties that effect the build process are
+#
+#  CYTHON_IS_CXX
+#
+# If this is set of a *.pyx file with CMake set_source_files_properties()
+# command, the file will be compiled as a C++ file.
 #
 # See also FindCython.cmake
 
@@ -58,9 +68,12 @@ set( CYTHON_CXX_EXTENSION "cxx" )
 set( CYTHON_C_EXTENSION "c" )
 
 # Create a *.c or *.cxx file from a *.pyx file.
+# Input the target *.pyx file.  The generate file will put into the variable
+# placed in the "generated_file" argument.
 function( COMPILE_PYX_FILE pyx_file generated_file )
   get_filename_component( pyx_file_basename "${pyx_file}" NAME_WE )
 
+  # Determine if it is a C or C++ file.
   set( pyx_file_is_cxx FALSE )
   get_source_file_property( property_is_cxx ${pyx_file} CYTHON_IS_CXX )
   if( ${property_is_cxx} )
@@ -72,9 +85,11 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     set( extension ${CYTHON_C_EXTENSION} )
     set( comment "Compiling Cython C source for ${pyx_file}..." )
   endif()
-  set( output_file ${pyx_file_basename}.${extension} )
-  set_source_files_properties( ${output_file} PROPERTIES GENERATED TRUE )
+  set( _generated_file "${pyx_file_basename}.${extension}" )
+  set_source_files_properties( ${_generated_file} PROPERTIES GENERATED TRUE )
+  set( ${generated_file} ${_generated_file} PARENT_SCOPE )
 
+  # Get the include directories.
   get_source_file_property( pyx_location ${pyx_file} LOCATION )
   get_filename_component( pyx_path ${pyx_location} PATH )
   get_directory_property( cmake_include_directories DIRECTORY ${pyx_path} INCLUDE_DIRECTORIES )
@@ -83,6 +98,19 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     set( include_directory_arg ${include_directory_arg} "-I" "${_include_dir}" )
   endforeach()
 
+  # Determine dependencies.
+  set( additional_dependencies "" )
+  # Add the pxd file will the same name as the given pyx file.
+  find_file( corresponding_pxd_file ${pyx_file_basename}.pxd
+    PATHS ${pyx_path} ${cmake_include_directories} 
+    NO_DEFAULT_PATH )
+  message("corresponding_pxd_file: ${corresponding_pxd_file}")
+  if( corresponding_pxd_file )
+    set( additional_dependencies ${corresponding_pxd_file} )
+  endif()
+  message( "additional_dependencies: ${additional_dependencies}" )
+
+  # Set additional flags.
   if( CYTHON_ANNOTATE )
     set( annotate_arg "--annotate" )
   else()
@@ -95,21 +123,20 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     set( no_docstrings_arg "" )
   endif()
 
-  set( _generated_file "${pyx_file_basename}.${extension}" )
-  set( ${generated_file} ${_generated_file} PARENT_SCOPE )
-  add_custom_command( OUTPUT ${output_file}
+  # Add the command to run the compiler.
+  add_custom_command( OUTPUT ${_generated_file}
     COMMAND ${CYTHON_EXECUTABLE}
     ARGS ${pyx_location} ${cxx_arg} ${include_directory_arg}
     ${annotate_arg} ${no_docstrings_arg} ${CYTHON_FLAGS} 
     --output-file  ${_generated_file}
-    DEPENDS ${pyx_file}
+    DEPENDS ${pyx_file} ${additional_dependencies}
     COMMENT ${comment}
     )
 endfunction()
 
-# CYTHON_ADD_MODULE( <name> src1 src2 ... srcN )
+# cython_add_module( <name> src1 src2 ... srcN )
 # Build the Cython Python module.
-function( CYTHON_ADD_MODULE _name )
+function( cython_add_module _name )
   set( module_sources "" )
   foreach( _file ${ARGN} )
     if( ${_file} MATCHES ".*\\.pyx$" )
