@@ -1,4 +1,5 @@
 cimport c_rectangle
+from c_rectangle cimport Rectangle as CRectangle
 
 cdef class Rectangle:
     cdef c_rectangle.Rectangle *thisptr      # hold a C++ instance which we're wrapping

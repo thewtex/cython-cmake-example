@@ -99,16 +99,61 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
   endforeach()
 
   # Determine dependencies.
-  set( additional_dependencies "" )
+  set( pxd_dependencies "" )
   # Add the pxd file will the same name as the given pyx file.
   find_file( corresponding_pxd_file ${pyx_file_basename}.pxd
-    PATHS ${pyx_path} ${cmake_include_directories} 
+    PATHS "${pyx_path}" ${cmake_include_directories} 
     NO_DEFAULT_PATH )
-  message("corresponding_pxd_file: ${corresponding_pxd_file}")
   if( corresponding_pxd_file )
-    set( additional_dependencies ${corresponding_pxd_file} )
+    set( pxd_dependencies "${corresponding_pxd_file}" )
   endif()
-  message( "additional_dependencies: ${additional_dependencies}" )
+
+  # pxd files to check for additional dependencies.
+  set( pxds_to_check "${pyx_file}" "${pxd_dependencies}" )
+  set( pxds_checked "" )
+  set( c_header_dependencies "" )
+  set( number_pxds_to_check 1 )
+  while( ${number_pxds_to_check} GREATER 0 )
+    foreach( pxd ${pxds_to_check} )
+      list( APPEND pxds_checked "${pxd}" )
+      list( REMOVE_ITEM pxds_to_check "${pxd}" )
+      # check for C header dependencies
+      # todo
+
+      # check for pxd dependencies
+
+      # Look for cimport statements.
+      set( module_dependencies "" )
+      file( STRINGS ${pxd} cimport_statements REGEX cimport )
+      foreach( statement ${cimport_statements} )
+        if( ${statement} MATCHES from )
+          string( REGEX REPLACE "from[ ]+([^ ]+)" "\\1" moduletmp "${statement}" )
+          # Why does this not work straight-away???
+          string( REGEX MATCH "[^ ]+" module "${moduletmp}" ) 
+        else()
+          string( REGEX REPLACE "cimport[ ]+([^ ]+)" "\\1" module "${statement}" )
+        endif()
+        list( APPEND module_dependencies ${module} )
+      endforeach()
+      list( REMOVE_DUPLICATES module_dependencies )
+      # Add the module to the files to check, if appropriate.
+      foreach( module ${module_dependencies} )
+        find_file( pxd_location ${module}.pxd
+          PATHS "${pyx_path}" ${cmake_include_directories} NO_DEFAULT_PATH )
+        if( pxd_location )
+          list( FIND pxds_checked ${pxd_location} pxd_idx )
+          if( ${pxd_idx} LESS 0 )
+            list( FIND pxds_to_check ${pxd_location} pxd_idx )
+            if( ${pxd_idx} LESS 0 )
+              list( APPEND pxds_to_check ${pxd_location} )
+              list( APPEND pxd_dependencies ${pxd_location} )
+            endif() # if it is not already going to be checked
+          endif() # if it has not already been checked
+        endif() # if pxd file can be found
+      endforeach()
+    endforeach()
+    list( LENGTH pxds_to_check number_pxds_to_check )
+  endwhile()
 
   # Set additional flags.
   if( CYTHON_ANNOTATE )
@@ -129,7 +174,7 @@ function( COMPILE_PYX_FILE pyx_file generated_file )
     ARGS ${pyx_location} ${cxx_arg} ${include_directory_arg}
     ${annotate_arg} ${no_docstrings_arg} ${CYTHON_FLAGS} 
     --output-file  ${_generated_file}
-    DEPENDS ${pyx_file} ${additional_dependencies}
+    DEPENDS ${pyx_file} ${pxd_dependencies} ${c_header_dependencies}
     COMMENT ${comment}
     )
 endfunction()
