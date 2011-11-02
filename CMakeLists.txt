@@ -22,5 +22,8 @@ add_custom_target( ReplicatePythonSourceTree ALL ${CMAKE_COMMAND} -P
   ${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
-# Process the CMakeLists.txt in the 'src' directory.
+include_directories( ${CYTHON_CMAKE_EXAMPLE_SOURCE_DIR}/include )
+
+# Process the CMakeLists.txt in the 'src' and 'bin' directory.
 add_subdirectory( src )
+add_subdirectory( bin )

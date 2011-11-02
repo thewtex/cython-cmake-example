@@ -264,7 +264,6 @@ function( cython_add_standalone_executable _name )
     endif()
   endforeach()
 
-  message( "pyx_module_sources: ${pyx_module_sources}" )
   if( cython_arguments_MAIN_MODULE )
     set( main_module ${cython_arguments_MAIN_MODULE} )
   endif()

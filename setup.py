@@ -7,7 +7,7 @@ setup(
     name = "cythoncmakeexample",
     package_dir = {'': 'src'},
     data_files = [(get_python_lib(), glob.glob('src/*.so')),
-        ('bin', 'bin/rectangle-props')],
+        ('bin', ['bin/rectangle-props'])],
     author = 'Matt McCormick',
     description = 'Use the CMake build system to make Cython modules.',
     license = 'Apache',
