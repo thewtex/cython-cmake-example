@@ -17,7 +17,7 @@ This repository has CMake utilities for building Cython projects with CMake.
 The rectangle example from the Cython documentation is built to demonstrate
 their use.
 
-The advantages of this build system include:
+The features of this build system include:
 
 - Easy configuration of build settings.
 - Easy integration of external libraries.
