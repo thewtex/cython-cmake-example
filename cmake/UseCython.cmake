@@ -113,6 +113,7 @@ function( compile_pyx _name generated_file )
 
     # Determine dependencies.
     # Add the pxd file will the same name as the given pyx file.
+    unset( corresponding_pxd_file CACHE )
     find_file( corresponding_pxd_file ${pyx_file_basename}.pxd
       PATHS "${pyx_path}" ${cmake_include_directories} 
       NO_DEFAULT_PATH )
@@ -135,6 +136,7 @@ function( compile_pyx _name generated_file )
         foreach( statement ${extern_from_statements} )
           # Had trouble getting the quote in the regex
           string( REGEX REPLACE "cdef[ ]+extern[ ]+from[ ]+[\"]([^\"]+)[\"].*" "\\1" header "${statement}" )
+          unset( header_location CACHE )
           find_file( header_location ${header} PATHS ${cmake_include_directories} )
           if( header_location )
             list( FIND c_header_dependencies "${header_location}" header_idx )
@@ -160,6 +162,7 @@ function( compile_pyx _name generated_file )
         list( REMOVE_DUPLICATES module_dependencies )
         # Add the module to the files to check, if appropriate.
         foreach( module ${module_dependencies} )
+          unset( pxd_location CACHE )
           find_file( pxd_location ${module}.pxd
             PATHS "${pyx_path}" ${cmake_include_directories} NO_DEFAULT_PATH )
           if( pxd_location )
