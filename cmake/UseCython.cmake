@@ -184,14 +184,15 @@ function( compile_pyx _name generated_file )
   # Set additional flags.
   if( CYTHON_ANNOTATE )
     set( annotate_arg "--annotate" )
-  else()
-    set( annotate_arg "" )
   endif()
 
   if( CYTHON_NO_DOCSTRINGS )
     set( no_docstrings_arg "--no-docstrings" )
-  else()
-    set( no_docstrings_arg "" )
+  endif()
+
+  if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
+        "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo" )
+      set( cython_debug_arg "--gdb" )
   endif()
 
   # Include directory arguments. 
@@ -213,7 +214,7 @@ function( compile_pyx _name generated_file )
   add_custom_command( OUTPUT ${_generated_file}
     COMMAND ${CYTHON_EXECUTABLE}
     ARGS ${cxx_arg} ${include_directory_arg}
-    ${annotate_arg} ${no_docstrings_arg} ${CYTHON_FLAGS} 
+    ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS} 
     --output-file  ${_generated_file} ${pyx_locations}
     DEPENDS ${pyx_locations} ${pxd_dependencies}
     IMPLICIT_DEPENDS ${pyx_lang} ${c_header_dependencies}
