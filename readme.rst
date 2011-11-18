@@ -15,7 +15,8 @@ interface, curses interface, or Qt GUI interface.
 
 This repository has CMake utilities for building Cython projects with CMake.
 The rectangle example from the Cython documentation is built to demonstrate
-their use.
+their use.  An example is also provided that shows registering a C callback
+with a function defined in a Cython module.
 
 The features of this build system include:
 
