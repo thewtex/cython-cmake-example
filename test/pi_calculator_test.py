@@ -24,5 +24,6 @@ def test_time_print_pi():
     print('')
     print('timing cython print_pi():')
     print(timeit.timeit('print_pi(1000000)', 'from pi_calculator import print_pi', number=5))
+    print('')
     print('timing python py_print_pi():')
     print(timeit.timeit('py_print_pi(1000000)', 'from pi_calculator_test import py_print_pi', number=5))
