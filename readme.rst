@@ -54,6 +54,12 @@ Build Instructions
   cmake /path/to/src/cython-cmake-example
   make
 
+.. warning::
+
+  In your CMake configuration, make sure that PYTHON_LIBRARY,
+  PYTHON_INCLUDE_DIR, and CYTHON_EXECUTABLE are all using the same CPython
+  version.
+
 To run the tests::
 
   nosetests
