@@ -26,6 +26,7 @@ The features of this build system include:
 - Implicit Makefile dependency generation for C/C++ headers.
 - Out-of-source builds.
 
+The project is tested across platforms on the `nightly dashboard`_.
 
 Dependencies
 ------------
@@ -68,3 +69,4 @@ To run the tests::
 .. _CMake:  http://cmake.org/
 .. _Nose:   http://pypi.python.org/pypi/nose/
 .. _Python: http://python.org/
+.. _nightly dashboard: http://my.cdash.org/index.php?project=cython-cmake-example
