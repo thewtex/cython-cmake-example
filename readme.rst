@@ -34,7 +34,7 @@ Dependencies
 Build Dependencies
 ^^^^^^^^^^^^^^^^^^
 
-- Python_
+- Python_ (also works with CMakeified-Python_)
 - Cython_
 - CMake_
 - C++ compiler (g++ for instance)
@@ -70,3 +70,4 @@ To run the tests::
 .. _Nose:   http://pypi.python.org/pypi/nose/
 .. _Python: http://python.org/
 .. _nightly dashboard: http://my.cdash.org/index.php?project=cython-cmake-example
+.. _CMakeified-Python: https://github.com/davidsansome/python-cmake-buildsystem
