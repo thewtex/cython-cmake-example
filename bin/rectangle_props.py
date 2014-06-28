@@ -1,6 +1,6 @@
 import sys
 
-from rectangle import Rectangle
+from rect import Rectangle
 
 def main(x0, y0, x1, y1):
     rect = Rectangle(int(x0), int(y0), int(x1), int(y1))
