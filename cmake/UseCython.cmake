@@ -195,6 +195,14 @@ function( compile_pyx _name generated_file )
       set( cython_debug_arg "--gdb" )
   endif()
 
+  if( "${PYTHONLIBS_VERSION_STRING}" MATCHES "^2." )
+    set( version_arg "-2" )
+  elseif( "${PYTHONLIBS_VERSION_STRING}" MATCHES "^3." )
+    set( version_arg "-3" )
+  else()
+    set( version_arg )
+  endif()
+
   # Include directory arguments. 
   list( REMOVE_DUPLICATES cython_include_directories )
   set( include_directory_arg "" )
@@ -213,8 +221,8 @@ function( compile_pyx _name generated_file )
   # Add the command to run the compiler.
   add_custom_command( OUTPUT ${_generated_file}
     COMMAND ${CYTHON_EXECUTABLE}
-    ARGS ${cxx_arg} ${include_directory_arg}
-    ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS} 
+    ARGS ${cxx_arg} ${include_directory_arg} ${version_arg}
+    ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS}
     --output-file  ${_generated_file} ${pyx_locations}
     DEPENDS ${pyx_locations} ${pxd_dependencies}
     IMPLICIT_DEPENDS ${pyx_lang} ${c_header_dependencies}
