@@ -89,6 +89,7 @@ function( compile_pyx _name generated_file )
 
   set( cython_include_directories "" )
   set( pxd_dependencies "" )
+  set( pxi_dependencies "" )
   set( c_header_dependencies "" )
   set( pyx_locations "" )
 
@@ -179,6 +180,19 @@ function( compile_pyx _name generated_file )
       endforeach() # for each pxd file to check
       list( LENGTH pxds_to_check number_pxds_to_check )
     endwhile()
+
+    # Look for included pxi files 
+    file(STRINGS "${pyx_file}" include_statements REGEX "include +['\"]([^'\"]+).*")
+    foreach(statement ${include_statements})
+      string(REGEX REPLACE "include +['\"]([^'\"]+).*" "\\1" pxi_file "${statement}")
+      unset(pxi_location CACHE)
+      find_file(pxi_location ${pxi_file}
+        PATHS "${pyx_path}" ${cmake_include_directories} NO_DEFAULT_PATH)
+      if (pxi_location)
+        list(APPEND pxi_dependencies ${pxi_location})
+      endif()
+    endforeach() # for each include statement found
+
   endforeach() # pyx_file
 
   # Set additional flags.
@@ -224,7 +238,7 @@ function( compile_pyx _name generated_file )
     ARGS ${cxx_arg} ${include_directory_arg} ${version_arg}
     ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS}
     --output-file  ${_generated_file} ${pyx_locations}
-    DEPENDS ${pyx_locations} ${pxd_dependencies}
+    DEPENDS ${pyx_locations} ${pxd_dependencies} ${pxi_dependencies}
     IMPLICIT_DEPENDS ${pyx_lang} ${c_header_dependencies}
     COMMENT ${comment}
     )
