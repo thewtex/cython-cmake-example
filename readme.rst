@@ -28,6 +28,12 @@ The features of this build system include:
 
 The project is tested across platforms on the `nightly dashboard`_.
 
+.. note::
+
+  The latest versions of these CMake Cython scripts are maintained in
+  `scikit-build
+  <https://github.com/scikit-build/scikit-build/tree/7bd56e5e79c62aa6cf0995851fa10532f23aa2aa/skbuild/resources/cmake>`_.
+
 Dependencies
 ------------
 
