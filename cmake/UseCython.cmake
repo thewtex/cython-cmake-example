@@ -18,7 +18,7 @@
 #   cython_add_standalone_executable( <executable_name> [MAIN_MODULE src1] <src1> <src2> ... <srcN> )
 #
 # To avoid dependence on Python, set the PYTHON_LIBRARY cache variable to point
-# to a static library.  If a MAIN_MODULE source is specified, 
+# to a static library.  If a MAIN_MODULE source is specified,
 # the "if __name__ == '__main__':" from that module is used as the C main() method
 # for the executable.  If MAIN_MODULE, the source with the same basename as
 # <executable_name> is assumed to be the MAIN_MODULE.
@@ -116,11 +116,31 @@ function( compile_pyx _name generated_file )
     # Add the pxd file will the same name as the given pyx file.
     unset( corresponding_pxd_file CACHE )
     find_file( corresponding_pxd_file ${pyx_file_basename}.pxd
-      PATHS "${pyx_path}" ${cmake_include_directories} 
+      PATHS "${pyx_path}" ${cmake_include_directories}
       NO_DEFAULT_PATH )
     if( corresponding_pxd_file )
       list( APPEND pxd_dependencies "${corresponding_pxd_file}" )
     endif()
+
+    # Look for included pxi files
+    file(STRINGS "${pyx_file}" include_statements REGEX "include +['\"]([^'\"]+).*")
+    foreach(statement ${include_statements})
+      string(REGEX REPLACE "include +['\"]([^'\"]+).*" "\\1" pxi_file "${statement}")
+      unset(pxi_location CACHE)
+      find_file(pxi_location ${pxi_file}
+        PATHS "${pyx_path}" ${cmake_include_directories} NO_DEFAULT_PATH)
+      if (pxi_location)
+        list(APPEND pxi_dependencies ${pxi_location})
+        get_filename_component( found_pyi_file_basename "${pxi_file}" NAME_WE )
+        get_filename_component( found_pyi_path ${pxi_location} PATH )
+        unset( found_pyi_pxd_file CACHE )
+        find_file( found_pyi_pxd_file ${found_pyi_file_basename}.pxd
+          PATHS "${found_pyi_path}" ${cmake_include_directories} NO_DEFAULT_PATH )
+        if (found_pyi_pxd_file)
+            list( APPEND pxd_dependencies "${found_pyi_pxd_file}" )
+        endif()
+      endif()
+    endforeach() # for each include statement found
 
     # pxd files to check for additional dependencies.
     set( pxds_to_check "${pyx_file}" "${pxd_dependencies}" )
@@ -181,17 +201,7 @@ function( compile_pyx _name generated_file )
       list( LENGTH pxds_to_check number_pxds_to_check )
     endwhile()
 
-    # Look for included pxi files 
-    file(STRINGS "${pyx_file}" include_statements REGEX "include +['\"]([^'\"]+).*")
-    foreach(statement ${include_statements})
-      string(REGEX REPLACE "include +['\"]([^'\"]+).*" "\\1" pxi_file "${statement}")
-      unset(pxi_location CACHE)
-      find_file(pxi_location ${pxi_file}
-        PATHS "${pyx_path}" ${cmake_include_directories} NO_DEFAULT_PATH)
-      if (pxi_location)
-        list(APPEND pxi_dependencies ${pxi_location})
-      endif()
-    endforeach() # for each include statement found
+
 
   endforeach() # pyx_file
 
@@ -217,7 +227,7 @@ function( compile_pyx _name generated_file )
     set( version_arg )
   endif()
 
-  # Include directory arguments. 
+  # Include directory arguments.
   list( REMOVE_DUPLICATES cython_include_directories )
   set( include_directory_arg "" )
   foreach( _include_dir ${cython_include_directories} )
