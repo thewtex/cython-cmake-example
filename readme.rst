@@ -1,3 +1,10 @@
+MIGRATED to SCIKIT-BUILD
+========================
+
+These modules are now maintained in `scikit-build <https://scikit-build.org/>`_
+
+
+
 cython-cmake-example
 ====================
 
